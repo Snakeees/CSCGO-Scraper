@@ -1,0 +1,1 @@
+# CSC GO Scraper

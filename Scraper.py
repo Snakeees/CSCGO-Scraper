@@ -4,7 +4,6 @@ import json
 
 BASE_URL = "https://mycscgo.com/api/v3/location"
 LOCATION_ID = "07cfb089-a19f-40c6-a6a7-5874aeb64d1b"
-OUTPUT_FILE = "data.json"
 
 
 def get_rooms(location_id):
@@ -47,8 +46,9 @@ def scrape_location(location_id):
 
 if __name__ == "__main__":
     machines_info = scrape_location(LOCATION_ID)
+
     # Save to JSON file
-    with open(OUTPUT_FILE, "w") as f:
+    with open("data.json", "w") as f:
         json.dump(machines_info, f, indent=4)
 
-    print(f"Data saved to {OUTPUT_FILE}")
+    print(f"Data saved to data.json")

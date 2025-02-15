@@ -1,47 +1,44 @@
 import requests
-import concurrent.futures
+from concurrent.futures import ThreadPoolExecutor, as_completed
 import json
 
 BASE_URL = "https://mycscgo.com/api/v3/location"
 LOCATION_ID = "07cfb089-a19f-40c6-a6a7-5874aeb64d1b"
 
 
-def get_rooms(location_id):
+def get_location_data(location_id):
     """Fetch all rooms for the given location."""
     url = f"{BASE_URL}/{location_id}"
     response = requests.get(url)
     response.raise_for_status()
 
     data = response.json()
-    return list(filter(None, [room.get("roomId", None) for room in data.get("rooms", [])]))
+    data["rooms"] = {room["roomId"]: room for room in sorted(data["rooms"], key=lambda room: room['roomId'])}
+    return data
 
 
-def get_machines(room_id):
+def get_machines(room):
     """Fetch all machines for the given room."""
-    url = f"{BASE_URL}/{LOCATION_ID}/room/{room_id}/machines"
+    url = f"{BASE_URL}/{room['locationId']}/room/{room['roomId']}/machines"
     response = requests.get(url)
     response.raise_for_status()
 
     data = response.json()
-    return {room_id: data}
+    room['machines'] = room['machines'] = sorted(data, key=lambda machine: (machine['type'], machine['stickerNumber']))
 
 
 def scrape_location(location_id):
     """Scrape rooms and machines concurrently."""
-    rooms = get_rooms(location_id)
-    machines_data = {}
+    location_data = get_location_data(location_id)
+    rooms = location_data["rooms"]
 
-    with concurrent.futures.ThreadPoolExecutor(max_workers=len(rooms)) as executor:
-        future_to_room = {executor.submit(get_machines, room): room for room in rooms}
+    with ThreadPoolExecutor(max_workers=len(rooms)) as executor:
+        future_to_room = [executor.submit(get_machines, room) for room in rooms.values()]
 
-        for future in concurrent.futures.as_completed(future_to_room):
-            room_id = future_to_room[future]
-            try:
-                machines_data.update(future.result())
-            except Exception as e:
-                print(f"Error fetching machines for room {room_id}: {e}")
+        for future in as_completed(future_to_room):
+            future.result()
 
-    return machines_data
+    return location_data
 
 
 if __name__ == "__main__":

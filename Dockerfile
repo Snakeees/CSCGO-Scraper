@@ -15,4 +15,4 @@ COPY . .
 EXPOSE 5000
 
 # Run the Flask app
-CMD ["sh", "-c", "python scraper.py && gunicorn -b 0.0.0.0:5000 app:app"]
+CMD ["sh", "-c", "python scraper.py && gunicorn -b 0.0.0.0:5000 app:app --access-logfile '/app/logs/access.log' --error-logfile '/app/logs/error.log' --log-level 'debug'"]

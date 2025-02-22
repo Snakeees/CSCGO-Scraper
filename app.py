@@ -22,6 +22,7 @@ def save_data(data):
 
 
 def claim(user_id, machine_id):
+    """Claim a machine for a user."""
     data, status = load_data()
     if status != 200:
         return data, status
@@ -45,7 +46,7 @@ def get_data():
 
 @app.route("/claim", methods=["POST"])
 def get_claim():
-    # Parse JSON data from the request
+    """Process the claim request."""
     data = request.get_json()
 
     if not data:

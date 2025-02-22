@@ -41,11 +41,16 @@ def scrape_location(location_id):
     return location_data
 
 
-if __name__ == "__main__":
+def run():
+    """Scrape location data and save it to a JSON file."""
     machines_info = scrape_location(LOCATION_ID)
 
     # Save to JSON file
     with open("data.json", "w") as f:
         json.dump(machines_info, f, indent=4)
 
-    print(f"Data saved to data.json")
+    return f"Data saved to data.json"
+
+
+if __name__ == "__main__":
+    print(run())

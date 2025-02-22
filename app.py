@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, Response
+from flask import Flask, request, jsonify, Response
 import json
 
 app = Flask(__name__)
@@ -8,18 +8,58 @@ def load_data():
     """Load data from JSON file."""
     try:
         with open("data.json", "r") as f:
-            return json.load(f)
+            return json.load(f), 200
     except FileNotFoundError:
-        return {"error": "data.json not found"}
+        return {"error": "data.json not found"}, 404
     except json.JSONDecodeError:
-        return {"error": "Invalid JSON format in data.json"}
+        return {"error": "Invalid JSON format in data.json"}, 404
+
+
+def save_data(data):
+    """Save data into JSON file."""
+    with open("data.json", "w") as f:
+        json.dump(data, f, indent=4)
+
+
+def claim(user_id, machine_id):
+    data, status = load_data()
+    if status != 200:
+        return data, status
+
+    for room in data.get("rooms", {}).values():
+        for machine in room.get("machines", []):
+            if machine["licensePlate"] == machine_id or machine["qrCodeId"] == user_id:
+                machine["lastUser"] = user_id
+                save_data(data)
+                return {"success": True}, 200
+
+    return {"error": f"Machine with id {machine_id} not found"}, 404
 
 
 @app.route("/", methods=["GET"])
 def get_data():
     """Fetch and return data.json content."""
-    data = load_data()
-    return jsonify(data)
+    data, status = load_data()
+    return jsonify(data), status
+
+
+@app.route("/claim", methods=["POST"])
+def get_claim():
+    # Parse JSON data from the request
+    data = request.get_json()
+
+    if not data:
+        return jsonify({"error": "No data provided"}), 404
+
+    user_id = data.get("user_id")
+    machine_id = data.get("machine_id")
+
+    if not user_id or not machine_id:
+        return jsonify({"error": "Missing required fields"}), 404
+
+    claim_response, status = claim(user_id, machine_id)
+
+    return jsonify(claim_response), status
 
 
 @app.route("/logs/access", methods=["GET"])

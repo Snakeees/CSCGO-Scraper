@@ -44,7 +44,7 @@ def scheduled_scrape(interval: int) -> None:
             Room.upsert(room)
         
         # Log machine status summary
-        available_machines = sum(1 for m in machines if m.get('available', False))
+        available_machines = sum(1 for m in machines if m.get('timeRemaining', 0) != 0)
         logging.info(
             f"Machine status: "
             f"Total: {len(machines)}, "

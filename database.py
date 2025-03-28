@@ -16,16 +16,16 @@ from typing import Dict, Any
 if os.getenv('TESTING'):
     db = None  # Will be set by tests
 else:
-    if os.getenv("DATABASE_IP") is None:
-        raise Exception("DATABASE_IP is not set")
+    if os.getenv("MYSQL_HOST") is None:
+        raise Exception("MYSQL_HOST is not set")
 
     # Establish a connection to the MySQL database using environment variables
     db = MySQLDatabase(
-        os.getenv("DATABASE_COLLECTION"),
-        user=os.getenv("DATABASE_USERNAME"),
-        password=os.getenv("DATABASE_PASSWORD"),
-        host=os.getenv("DATABASE_IP"),
-        port=int(os.getenv("DATABASE_PORT")),
+        os.getenv("MYSQL_DATABASE"),
+        user=os.getenv("MYSQL_USER"),
+        password=os.getenv("MYSQL_PASSWORD"),
+        host=os.getenv("MYSQL_HOST"),
+        port=int(os.getenv("MYSQL_PORT")),
     )
     # Connect only if not in testing mode
     db.connect()

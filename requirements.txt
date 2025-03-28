@@ -14,6 +14,7 @@ MarkupSafe==3.0.2
 packaging==24.2
 peewee==3.17.9
 pluggy==1.5.0
+PyMySQL==1.1.0
 pytest==8.3.4
 requests==2.32.3
 tomli==2.2.1

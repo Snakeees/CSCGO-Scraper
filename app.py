@@ -7,43 +7,22 @@ app = Flask(__name__)
 @app.route("/", methods=["GET"])
 def get_data():
     """
-    Fetch all locations with their associated rooms and machines from the database.
+    Fetch locations with their associated rooms and machines from the database.
+    Supports filtering by room ID or machine ID using query parameters.
+
+    Query Parameters:
+        room (optional): Filter results to show only specified room ID
+        machine (optional): Filter results to show only specified machine (license plate or QR code)
 
     Returns:
         tuple: A tuple containing:
-            - JSON response with an array of location objects, each containing:
-                - Basic location info (ID, description, counts, etc.)
-                - Nested rooms object with room details
-                - Each room contains an array of machine objects
+            - JSON response with an array of location objects
             - HTTP status code (200 for success, 500 for errors)
-
-    Example Response:
-        [
-            {
-                "locationId": "abc123",
-                "description": "Main Building",
-                "label": "Building A",
-                "dryerCount": 10,
-                "washerCount": 15,
-                "machineCount": 25,
-                "rooms": {
-                    "room1": {
-                        "roomId": "room1",
-                        "machines": [
-                            {
-                                "licensePlate": "W001",
-                                "available": true,
-                                "type": "washer",
-                                ...
-                            }
-                        ],
-                        ...
-                    }
-                }
-            }
-        ]
     """
     try:
+        room_id = request.args.get('room')
+        machine_id = request.args.get('machine')
+        
         locations = []
         for location in Location.select():
             loc_data = {
@@ -57,6 +36,10 @@ def get_data():
             }
             
             for room in location.rooms:
+                # Skip if room filter is set and doesn't match
+                if room_id and room.roomId != room_id:
+                    continue
+                    
                 room_data = {
                     "roomId": room.roomId,
                     "connected": room.connected,
@@ -70,6 +53,10 @@ def get_data():
                 }
                 
                 for machine in room.machines:
+                    # Skip if machine filter is set and doesn't match
+                    if machine_id and machine.licensePlate != machine_id and machine.qrCodeId != machine_id:
+                        continue
+                        
                     machine_data = {
                         "licensePlate": machine.licensePlate,
                         "qrCodeId": machine.qrCodeId,
@@ -81,9 +68,13 @@ def get_data():
                     }
                     room_data["machines"].append(machine_data)
                 
-                loc_data["rooms"][room.roomId] = room_data
+                # Only add room if it has machines (when machine filter is applied)
+                if not machine_id or room_data["machines"]:
+                    loc_data["rooms"][room.roomId] = room_data
             
-            locations.append(loc_data)
+            # Only add location if it has rooms (when room or machine filter is applied)
+            if not (room_id or machine_id) or loc_data["rooms"]:
+                locations.append(loc_data)
         
         return jsonify(locations), 200
     except Exception as e:

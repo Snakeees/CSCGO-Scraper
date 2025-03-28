@@ -1,5 +1,6 @@
 import os
 import datetime
+from dotenv import load_dotenv
 from peewee import (
     MySQLDatabase,
     Model,
@@ -11,6 +12,9 @@ from peewee import (
     ForeignKeyField,
 )
 from typing import Dict, Any
+
+# Load environment variables from .env file
+load_dotenv()
 
 # Initialize db as None - will be set based on environment
 if os.getenv('TESTING'):

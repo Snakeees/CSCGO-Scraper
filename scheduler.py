@@ -33,7 +33,7 @@ def scheduled_scrape(interval: int) -> None:
         # Log summary of scraped data
         logging.info(
             f"Scraped data summary: "
-            f"Location: {location_data.get('description', 'Unknown')}, "
+            f"Location: {location_data.get('label', 'Unknown')}, "
             f"Rooms: {len(rooms)}, "
             f"Machines: {len(machines)}"
         )

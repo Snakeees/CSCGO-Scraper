@@ -1,11 +1,7 @@
 import pytest
 from unittest.mock import patch, mock_open
 from peewee import SqliteDatabase
-import os
 from app import app
-
-# Set testing environment
-os.environ['TESTING'] = 'true'
 from database import Location, Room, Machine
 
 # Use SQLite for testing

@@ -1,10 +1,5 @@
 import pytest
-import os
 from peewee import SqliteDatabase
-
-# Set testing environment
-os.environ['TESTING'] = 'true'
-
 from database import Location, Room, Machine
 
 # Use SQLite for testing

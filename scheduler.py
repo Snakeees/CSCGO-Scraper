@@ -1,12 +1,13 @@
 import sched
 import time
 import logging
+import sys
 from scraper import scrape_location
 from database import Location, Room, Machine
 
-# Configure logging
+# Configure logging to console only
 logging.basicConfig(
-    filename='logs/scraper.log',
+    stream=sys.stdout,
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s',
     datefmt='%Y-%m-%d %H:%M:%S'
@@ -23,6 +24,7 @@ def scheduled_scrape(interval: int) -> None:
     Args:
         interval: Time in seconds between runs
     """
+    success = True
     try:
         logging.info(f"Starting scrape for location {LOCATION_ID}")
         
@@ -51,9 +53,16 @@ def scheduled_scrape(interval: int) -> None:
         )
         
         for machine in machines:
-            Machine.upsert(machine)
+            try:
+                Machine.upsert(machine)
+            except Exception as e:
+                success = False
+                logging.error(f"Error updating machine {machine.get('licensePlate', 'Unknown')}: {str(e)}")
 
-        logging.info("Database update completed successfully")
+        if success:
+            logging.info("Database update completed successfully")
+        else:
+            logging.warning("Database update completed with some errors")
         
     except Exception as e:
         logging.error(f"Scraping error: {str(e)}", exc_info=True)

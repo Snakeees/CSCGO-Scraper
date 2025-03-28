@@ -115,12 +115,12 @@ class Machine(BaseModel):
     location = ForeignKeyField(Location, backref='machines', column_name='locationId')  # FK to Location
     mode = CharField()  # Current mode
     nfcId = CharField()  # NFC identifier
-    notAvailableReason = CharField()  # Reason for unavailability
+    notAvailableReason = CharField(null=True, default='')  # Reason for unavailability
     opaqueId = CharField()  # Opaque identifier
     qrCodeId = CharField()  # QR code identifier
     roomId = ForeignKeyField(Room, backref='machines', column_name='roomId')  # FK to Room
     settings_cycle = CharField()  # Selected cycle setting
-    settings_dryerTemp = CharField()  # Dryer temperature setting
+    settings_dryerTemp = CharField(null=True)  # Dryer temperature setting
     settings_soil = CharField()  # Soil level setting
     settings_washerTemp = CharField(null=True)  # Optional washer temperature
     stackItems = TextField(null=True)  # Optional stack info

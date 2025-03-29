@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify, Response
-from database import Location, Room, Machine
+from database import Location, Machine
 
 app = Flask(__name__)
 
@@ -22,7 +22,7 @@ def get_data():
     try:
         room_id = request.args.get('room')
         machine_id = request.args.get('machine')
-        
+
         locations = []
         for location in Location.select():
             loc_data = {
@@ -34,12 +34,12 @@ def get_data():
                 "machineCount": location.machineCount,
                 "rooms": {}
             }
-            
+
             for room in location.rooms:
                 # Skip if room filter is set and doesn't match
                 if room_id and room.roomId != room_id:
                     continue
-                    
+
                 room_data = {
                     "roomId": room.roomId,
                     "connected": room.connected,
@@ -51,12 +51,12 @@ def get_data():
                     "freePlay": room.freePlay,
                     "machines": []
                 }
-                
+
                 for machine in room.machines:
                     # Skip if machine filter is set and doesn't match
                     if machine_id and machine.licensePlate != machine_id and machine.qrCodeId != machine_id:
                         continue
-                        
+
                     machine_data = {
                         "licensePlate": machine.licensePlate,
                         "qrCodeId": machine.qrCodeId,
@@ -67,15 +67,15 @@ def get_data():
                         "mode": machine.mode
                     }
                     room_data["machines"].append(machine_data)
-                
+
                 # Only add room if it has machines (when machine filter is applied)
                 if not machine_id or room_data["machines"]:
                     loc_data["rooms"][room.roomId] = room_data
-            
+
             # Only add location if it has rooms (when room or machine filter is applied)
             if not (room_id or machine_id) or loc_data["rooms"]:
                 locations.append(loc_data)
-        
+
         return jsonify(locations), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -120,11 +120,11 @@ def get_claim():
     try:
         # Try to find machine by license plate or QR code
         machine = (Machine
-                  .select()
-                  .where((Machine.licensePlate == machine_id) | 
-                         (Machine.qrCodeId == machine_id))
-                  .first())
-        
+                   .select()
+                   .where((Machine.licensePlate == machine_id) |
+                          (Machine.qrCodeId == machine_id))
+                   .first())
+
         if not machine:
             return jsonify({"error": f"Machine with id {machine_id} not found"}), 404
 

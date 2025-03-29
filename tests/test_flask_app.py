@@ -6,7 +6,7 @@ from database import Location, Room, Machine
 
 # Use SQLite for testing
 MODELS = [Location, Room, Machine]
-test_db = SqliteDatabase(':memory:')
+test_db = SqliteDatabase(":memory:")
 
 # Sample mock data for testing
 mock_data = {
@@ -25,11 +25,11 @@ mock_data = {
                     "qrCodeId": "qr1",
                     "lastUser": None,
                     "type": "washer",
-                    "stickerNumber": 1
+                    "stickerNumber": 1,
                 }
-            ]
+            ],
         }
-    }
+    },
 }
 
 
@@ -61,7 +61,7 @@ def test_get_data_success(client, setup_database):
         label="Test",
         dryerCount=1,
         washerCount=1,
-        machineCount=2
+        machineCount=2,
     )
 
     room = Room.create(
@@ -73,7 +73,7 @@ def test_get_data_success(client, setup_database):
         dryerCount=1,
         washerCount=1,
         machineCount=2,
-        freePlay=False
+        freePlay=False,
     )
 
     Machine.create(
@@ -99,7 +99,7 @@ def test_get_data_success(client, setup_database):
         opaqueId="op123",
         settings_cycle="normal",
         settings_dryerTemp="high",
-        settings_soil="normal"
+        settings_soil="normal",
     )
 
     response = client.get("/")
@@ -117,9 +117,9 @@ def test_claim_success(client, setup_database):
         label="Test Location",
         dryerCount=1,
         washerCount=1,
-        machineCount=2
+        machineCount=2,
     )
-    
+
     room = Room.create(
         roomId="room1",
         locationId=location,
@@ -129,9 +129,9 @@ def test_claim_success(client, setup_database):
         dryerCount=1,
         washerCount=1,
         machineCount=2,
-        freePlay=False
+        freePlay=False,
     )
-    
+
     Machine.create(
         licensePlate="machine1",
         qrCodeId="qr1",
@@ -155,13 +155,12 @@ def test_claim_success(client, setup_database):
         opaqueId="op123",
         settings_cycle="normal",
         settings_dryerTemp="high",
-        settings_soil="normal"
+        settings_soil="normal",
     )
 
-    response = client.post("/claim", json={
-        "user_id": "user123",
-        "machine_id": "machine1"
-    })
+    response = client.post(
+        "/claim", json={"user_id": "user123", "machine_id": "machine1"}
+    )
     assert response.status_code == 200
     assert response.get_json() == {"success": True}
 
@@ -184,13 +183,12 @@ def test_claim_machine_not_found(client, setup_database):
         label="Test Location",
         dryerCount=1,
         washerCount=1,
-        machineCount=2
+        machineCount=2,
     )
 
-    response = client.post("/claim", json={
-        "user_id": "user123",
-        "machine_id": "invalid_machine"
-    })
+    response = client.post(
+        "/claim", json={"user_id": "user123", "machine_id": "invalid_machine"}
+    )
     assert response.status_code == 404
     assert response.get_json() == {"error": "Machine with id invalid_machine not found"}
 

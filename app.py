@@ -20,8 +20,8 @@ def get_data():
             - HTTP status code (200 for success, 500 for errors)
     """
     try:
-        room_id = request.args.get('room')
-        machine_id = request.args.get('machine')
+        room_id = request.args.get("room")
+        machine_id = request.args.get("machine")
 
         locations = []
         for location in Location.select():
@@ -32,7 +32,7 @@ def get_data():
                 "dryerCount": location.dryerCount,
                 "washerCount": location.washerCount,
                 "machineCount": location.machineCount,
-                "rooms": {}
+                "rooms": {},
             }
 
             for room in location.rooms:
@@ -49,12 +49,16 @@ def get_data():
                     "washerCount": room.washerCount,
                     "machineCount": room.machineCount,
                     "freePlay": room.freePlay,
-                    "machines": []
+                    "machines": [],
                 }
 
                 for machine in room.machines:
                     # Skip if machine filter is set and doesn't match
-                    if machine_id and machine.licensePlate != machine_id and machine.qrCodeId != machine_id:
+                    if (
+                        machine_id
+                        and machine.licensePlate != machine_id
+                        and machine.qrCodeId != machine_id
+                    ):
                         continue
 
                     machine_data = {
@@ -64,7 +68,7 @@ def get_data():
                         "available": machine.available,
                         "type": machine.type,
                         "timeRemaining": machine.timeRemaining,
-                        "mode": machine.mode
+                        "mode": machine.mode,
                     }
                     room_data["machines"].append(machine_data)
 
@@ -119,11 +123,13 @@ def get_claim():
 
     try:
         # Try to find machine by license plate or QR code
-        machine = (Machine
-                   .select()
-                   .where((Machine.licensePlate == machine_id) |
-                          (Machine.qrCodeId == machine_id))
-                   .first())
+        machine = (
+            Machine.select()
+            .where(
+                (Machine.licensePlate == machine_id) | (Machine.qrCodeId == machine_id)
+            )
+            .first()
+        )
 
         if not machine:
             return jsonify({"error": f"Machine with id {machine_id} not found"}), 404

@@ -17,7 +17,7 @@ from typing import Dict, Any
 load_dotenv()
 
 # Initialize db as None - will be set based on environment
-if os.getenv('TESTING'):
+if os.getenv("TESTING"):
     db = None  # Will be set by tests
 else:
     if os.getenv("MYSQL_HOST") is None:
@@ -41,7 +41,12 @@ class BaseModel(Model):
         database = db
 
     @classmethod
-    def _check_updates_needed(cls, existing: Any, data: Dict[str, Any], exclude_fields: tuple = ('lastUpdated',)) -> bool:
+    def _check_updates_needed(
+        cls,
+        existing: Any,
+        data: Dict[str, Any],
+        exclude_fields: tuple = ("lastUpdated",),
+    ) -> bool:
         for key, new_value in data.items():
             if key in exclude_fields:
                 continue
@@ -58,18 +63,20 @@ class Location(BaseModel):
     label = CharField()  # Label/name of the location
     machineCount = IntegerField()  # Total number of machines
     washerCount = IntegerField()  # Number of washers
-    lastUpdated = DateTimeField(default=datetime.datetime.now)  # Timestamp of last update
+    lastUpdated = DateTimeField(
+        default=datetime.datetime.now
+    )  # Timestamp of last update
 
     @classmethod
     def upsert(cls, data: Dict[str, Any]) -> None:
-        loc_id = data.get('locationId')
+        loc_id = data.get("locationId")
         existing = cls.get_or_none(cls.locationId == loc_id)
 
         if existing is None:
-            data['lastUpdated'] = datetime.datetime.now()
+            data["lastUpdated"] = datetime.datetime.now()
             cls.create(**data)
         elif cls._check_updates_needed(existing, data):
-            data['lastUpdated'] = datetime.datetime.now()
+            data["lastUpdated"] = datetime.datetime.now()
             cls.update(**data).where(cls.locationId == loc_id).execute()
 
 
@@ -81,21 +88,25 @@ class Room(BaseModel):
     dryerCount = IntegerField()  # Number of dryers in the room
     freePlay = BooleanField()  # Indicates if machines are in free play mode
     label = CharField()  # Label/name of the room
-    locationId = ForeignKeyField(Location, backref='rooms', column_name='locationId')  # FK to Location
+    locationId = ForeignKeyField(
+        Location, backref="rooms", column_name="locationId"
+    )  # FK to Location
     machineCount = IntegerField()  # Total number of machines
     washerCount = IntegerField()  # Number of washers
-    lastUpdated = DateTimeField(default=datetime.datetime.now)  # Timestamp of last update
+    lastUpdated = DateTimeField(
+        default=datetime.datetime.now
+    )  # Timestamp of last update
 
     @classmethod
     def upsert(cls, data: Dict[str, Any]) -> None:
-        room_id = data.get('roomId')
+        room_id = data.get("roomId")
         existing = cls.get_or_none(cls.roomId == room_id)
 
         if existing is None:
-            data['lastUpdated'] = datetime.datetime.now()
+            data["lastUpdated"] = datetime.datetime.now()
             cls.create(**data)
         elif cls._check_updates_needed(existing, data):
-            data['lastUpdated'] = datetime.datetime.now()
+            data["lastUpdated"] = datetime.datetime.now()
             cls.update(**data).where(cls.roomId == room_id).execute()
 
 
@@ -112,13 +123,17 @@ class Machine(BaseModel):
     groupId = CharField(null=True)  # Optional group ID
     inService = BooleanField(null=True)  # In service or not
     licensePlate = CharField()  # Machine's license plate
-    location = ForeignKeyField(Location, backref='machines', column_name='locationId')  # FK to Location
+    location = ForeignKeyField(
+        Location, backref="machines", column_name="locationId"
+    )  # FK to Location
     mode = CharField()  # Current mode
     nfcId = CharField()  # NFC identifier
-    notAvailableReason = CharField(null=True, default='')  # Reason for unavailability
+    notAvailableReason = CharField(null=True, default="")  # Reason for unavailability
     opaqueId = CharField()  # Opaque identifier
     qrCodeId = CharField()  # QR code identifier
-    roomId = ForeignKeyField(Room, backref='machines', column_name='roomId')  # FK to Room
+    roomId = ForeignKeyField(
+        Room, backref="machines", column_name="roomId"
+    )  # FK to Room
     settings_cycle = CharField()  # Selected cycle setting
     settings_dryerTemp = CharField(null=True)  # Dryer temperature setting
     settings_soil = CharField()  # Soil level setting
@@ -127,7 +142,9 @@ class Machine(BaseModel):
     stickerNumber = IntegerField()  # Sticker number
     timeRemaining = IntegerField()  # Time remaining in current cycle
     type = CharField()  # Machine type (e.g., washer, dryer)
-    lastUpdated = DateTimeField(default=datetime.datetime.now)  # Timestamp of last update
+    lastUpdated = DateTimeField(
+        default=datetime.datetime.now
+    )  # Timestamp of last update
     lastUser = CharField(null=True)  # Optional last user ID or name
 
     def save(self, *args, **kwargs):
@@ -137,26 +154,28 @@ class Machine(BaseModel):
 
     @classmethod
     def create(cls, **query):
-        if query.get('timeRemaining', 0) < 0:
+        if query.get("timeRemaining", 0) < 0:
             raise ValueError("timeRemaining cannot be negative")
         return super().create(**query)
 
     @classmethod
     def upsert(cls, data: Dict[str, Any]) -> None:
-        opaque_id = data.get('opaqueId')
+        opaque_id = data.get("opaqueId")
         existing = cls.get_or_none(cls.opaqueId == opaque_id)
 
         if existing is None:
-            data['lastUpdated'] = datetime.datetime.now()
-            data['lastUser'] = "Unknown"
+            data["lastUpdated"] = datetime.datetime.now()
+            data["lastUser"] = "Unknown"
             cls.create(**data)
-        elif cls._check_updates_needed(existing, data, exclude_fields=('lastUpdated', 'lastUser')):
-            data['lastUpdated'] = datetime.datetime.now()
+        elif cls._check_updates_needed(
+            existing, data, exclude_fields=("lastUpdated", "lastUser")
+        ):
+            data["lastUpdated"] = datetime.datetime.now()
             if data["timeRemaining"] - existing.timeRemaining > 5:
-                data['lastUser'] = "Unknown"
+                data["lastUser"] = "Unknown"
             cls.update(**data).where(cls.opaqueId == opaque_id).execute()
 
 
 # Connect to the database and create tables if they don't exist
-if not os.getenv('TESTING'):
+if not os.getenv("TESTING"):
     db.create_tables([Location, Room, Machine], safe=True)

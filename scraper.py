@@ -5,7 +5,7 @@ BASE_URL = "https://mycscgo.com/api/v3/location"
 LOCATION_ID = "07cfb089-a19f-40c6-a6a7-5874aeb64d1b"
 
 
-def flatten_dict(d, parent_key='', sep='_'):
+def flatten_dict(d, parent_key="", sep="_"):
     """
     Flatten a nested dictionary into a single-level dictionary with composite keys.
 
@@ -61,7 +61,9 @@ def get_location_data(location_id):
     response.raise_for_status()
 
     location_data = response.json()
-    location_data["rooms"] = list(sorted(location_data["rooms"], key=lambda room: room['roomId']))
+    location_data["rooms"] = list(
+        sorted(location_data["rooms"], key=lambda room: room["roomId"])
+    )
     return location_data
 
 
@@ -90,7 +92,9 @@ def get_machines(room):
     url = f"{BASE_URL}/{room['locationId']}/room/{room['roomId']}/machines"
     response = requests.get(url)
     response.raise_for_status()
-    return sorted(response.json(), key=lambda machine: (machine['type'], machine['stickerNumber']))
+    return sorted(
+        response.json(), key=lambda machine: (machine["type"], machine["stickerNumber"])
+    )
 
 
 def scrape_location(location_id):
@@ -148,7 +152,7 @@ def scrape_location(location_id):
         for future in as_completed(future_to_room):
             machines.extend(map(flatten_dict, future.result()))
 
-    machines.sort(key=lambda machine: (machine['type'], machine['stickerNumber']))
+    machines.sort(key=lambda machine: (machine["type"], machine["stickerNumber"]))
 
     return location_data, rooms, machines
 

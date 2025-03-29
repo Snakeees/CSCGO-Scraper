@@ -4,7 +4,7 @@ from database import Location, Room, Machine
 
 # Use SQLite for testing
 MODELS = [Location, Room, Machine]
-test_db = SqliteDatabase(':memory:')
+test_db = SqliteDatabase(":memory:")
 
 
 @pytest.fixture
@@ -28,7 +28,7 @@ def test_machine_time_remaining(setup_database):
         dryerCount=1,
         label="Test Location",
         machineCount=1,
-        washerCount=0
+        washerCount=0,
     )
 
     room = Room.create(
@@ -39,7 +39,7 @@ def test_machine_time_remaining(setup_database):
         label="Test Room",
         locationId=location,
         machineCount=1,
-        washerCount=0
+        washerCount=0,
     )
 
     # Test cases for timeRemaining
@@ -47,7 +47,7 @@ def test_machine_time_remaining(setup_database):
         (0, "idle machine"),
         (1800, "30 minute cycle"),
         (60, "final minute"),
-        (3600, "1 hour cycle")
+        (3600, "1 hour cycle"),
     ]
 
     for time_value, case_desc in test_cases:
@@ -72,7 +72,7 @@ def test_machine_time_remaining(setup_database):
             settings_soil="normal",
             stickerNumber=1,
             timeRemaining=time_value,
-            type="dryer"
+            type="dryer",
         )
 
         # Verify the value was stored correctly
@@ -89,7 +89,7 @@ def test_machine_time_remaining_constraints(setup_database):
         dryerCount=1,
         label="Test Location",
         machineCount=1,
-        washerCount=0
+        washerCount=0,
     )
 
     room = Room.create(
@@ -100,7 +100,7 @@ def test_machine_time_remaining_constraints(setup_database):
         label="Test Room",
         locationId=location,
         machineCount=1,
-        washerCount=0
+        washerCount=0,
     )
 
     # Test negative time (should not be allowed in real application)
@@ -126,5 +126,5 @@ def test_machine_time_remaining_constraints(setup_database):
             settings_soil="normal",
             stickerNumber=1,
             timeRemaining=-1,
-            type="dryer"
+            type="dryer",
         )

@@ -5,13 +5,30 @@ import sys
 from scraper import scrape_location
 from database import Location, Room, Machine
 
-# Configure logging to console only
-logging.basicConfig(
-    stream=sys.stdout,
-    level=logging.INFO,
-    format="%(asctime)s - %(levelname)s - %(message)s",
-    datefmt="%Y-%m-%d %H:%M:%S",
+# Clear any existing handlers
+for handler in logging.root.handlers[:]:
+    logging.root.removeHandler(handler)
+
+# Create separate handlers for stdout (INFO and below) and stderr (WARNING and above)
+stdout_handler = logging.StreamHandler(sys.stdout)
+stderr_handler = logging.StreamHandler(sys.stderr)
+
+# Set log levels
+stdout_handler.setLevel(logging.INFO)
+stderr_handler.setLevel(logging.WARNING)
+
+# Define a common formatter
+formatter = logging.Formatter(
+    "%(asctime)s - %(levelname)s - %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S"
 )
+
+# Attach formatter to handlers
+stdout_handler.setFormatter(formatter)
+stderr_handler.setFormatter(formatter)
+
+# Add handlers to the root logger
+logging.basicConfig(level=logging.DEBUG, handlers=[stdout_handler, stderr_handler])
 
 scheduler = sched.scheduler(time.time, time.sleep)
 LOCATION_ID = "07cfb089-a19f-40c6-a6a7-5874aeb64d1b"

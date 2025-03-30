@@ -16,6 +16,14 @@ from typing import Dict, Any
 # Load environment variables from .env file
 load_dotenv()
 
+
+class AutoConnectingMySQLDatabase(MySQLDatabase):
+    def execute_sql(self, sql, params=None, commit=True):
+        # Always ensure connection is active before executing SQL
+        self.connect(reuse_if_open=True)
+        return super().execute_sql(sql, params, commit)
+
+
 # Initialize db as None - will be set based on environment
 if os.getenv("TESTING"):
     db = None  # Will be set by tests
@@ -24,7 +32,7 @@ else:
         raise Exception("MYSQL_HOST is not set")
 
     # Establish a connection to the MySQL database using environment variables
-    db = MySQLDatabase(
+    db = AutoConnectingMySQLDatabase(
         os.getenv("MYSQL_DATABASE"),
         user=os.getenv("MYSQL_USER"),
         password=os.getenv("MYSQL_PASSWORD"),
@@ -42,10 +50,10 @@ class BaseModel(Model):
 
     @classmethod
     def _check_updates_needed(
-        cls,
-        existing: Any,
-        data: Dict[str, Any],
-        exclude_fields: tuple = ("lastUpdated",),
+            cls,
+            existing: Any,
+            data: Dict[str, Any],
+            exclude_fields: tuple = ("lastUpdated",),
     ) -> bool:
         for key, new_value in data.items():
             if key in exclude_fields:
@@ -168,7 +176,7 @@ class Machine(BaseModel):
             data["lastUser"] = "Unknown"
             cls.create(**data)
         elif cls._check_updates_needed(
-            existing, data, exclude_fields=("lastUpdated", "lastUser")
+                existing, data, exclude_fields=("lastUpdated", "lastUser")
         ):
             data["lastUpdated"] = datetime.datetime.now()
             if data["timeRemaining"] - existing.timeRemaining > 5:

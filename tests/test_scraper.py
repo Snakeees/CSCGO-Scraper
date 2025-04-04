@@ -18,7 +18,7 @@ mock_machines_response = [
 ]
 
 
-@patch("scraper.requests.get")
+@patch("core.scraper.requests.get")
 def test_get_location_data_success(mock_get):
     mock_get.return_value = Mock(status_code=200)
     mock_get.return_value.json.return_value = mock_location_response
@@ -29,7 +29,7 @@ def test_get_location_data_success(mock_get):
     assert result["rooms"][0]["roomId"] == "room1"
 
 
-@patch("scraper.requests.get")
+@patch("core.scraper.requests.get")
 def test_get_location_data_http_error(mock_get):
     mock_get.side_effect = requests.exceptions.HTTPError("404 Client Error")
 
@@ -37,7 +37,7 @@ def test_get_location_data_http_error(mock_get):
         get_location_data("invalid-location-id")
 
 
-@patch("scraper.requests.get")
+@patch("core.scraper.requests.get")
 def test_get_machines_success(mock_get):
     mock_get.return_value = Mock(status_code=200)
     mock_get.return_value.json.return_value = mock_machines_response
@@ -50,8 +50,8 @@ def test_get_machines_success(mock_get):
     assert result[1]["type"] == "washer"
 
 
-@patch("scraper.get_location_data")
-@patch("scraper.get_machines")
+@patch("core.scraper.get_location_data")
+@patch("core.scraper.get_machines")
 def test_scrape_location(mock_get_machines, mock_get_location_data):
     mock_get_location_data.return_value = mock_location_response
     # Return different machines for each room to avoid duplicates

@@ -4,11 +4,17 @@ from core.database import Location, Room, Machine
 
 # Use SQLite for testing
 MODELS = [Location, Room, Machine]
-test_db = SqliteDatabase(":memory:")
+
+
+@pytest.fixture(scope="session")
+def test_db():
+    """Create a test database connection"""
+    db = SqliteDatabase(":memory:")
+    return db
 
 
 @pytest.fixture
-def setup_database():
+def setup_database(test_db):
     # Bind model classes to test db
     for model in MODELS:
         model._meta.database = test_db

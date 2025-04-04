@@ -18,10 +18,10 @@ load_dotenv()
 
 
 class AutoConnectingMySQLDatabase(MySQLDatabase):
-    def execute_sql(self, sql, params=None, commit=True):
+    def execute_sql(self, sql, params=None):
         # Always ensure connection is active before executing SQL
         self.connect(reuse_if_open=True)
-        return super().execute_sql(sql, params, commit)
+        return super().execute_sql(sql, params)  # Remove commit argument
 
 
 # Initialize db as None - will be set based on environment

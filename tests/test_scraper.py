@@ -1,7 +1,7 @@
 import pytest
 from unittest.mock import patch, Mock
 import requests
-from scraper import get_location_data, get_machines, scrape_location
+from core.scraper import get_location_data, get_machines, scrape_location
 
 # Sample mock data for testing
 mock_location_response = {

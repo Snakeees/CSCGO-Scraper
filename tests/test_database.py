@@ -1,6 +1,6 @@
 import pytest
 from peewee import SqliteDatabase
-from database import Location, Room, Machine
+from core.database import Location, Room, Machine
 
 # Use SQLite for testing
 MODELS = [Location, Room, Machine]

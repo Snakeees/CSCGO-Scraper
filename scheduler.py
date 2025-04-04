@@ -2,8 +2,8 @@ import sched
 import time
 import logging
 import sys
-from scraper import scrape_location
-from database import Location, Room, Machine
+from core.scraper import scrape_location
+from core.database import Location, Room, Machine
 
 # Clear any existing handlers
 for handler in logging.root.handlers[:]:

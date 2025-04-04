@@ -2,7 +2,7 @@ import pytest
 from unittest.mock import patch, mock_open
 from peewee import SqliteDatabase
 from app import app
-from database import Location, Room, Machine
+from core.database import Location, Room, Machine
 
 # Use SQLite for testing
 MODELS = [Location, Room, Machine]

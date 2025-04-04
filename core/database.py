@@ -58,7 +58,13 @@ class BaseModel(Model):
         for key, new_value in data.items():
             if key in exclude_fields:
                 continue
-            if getattr(existing, key) != new_value:
+            old_value = getattr(existing, key)
+            
+            # Handle foreign keys by comparing IDs
+            if isinstance(old_value, Model):
+                old_value = old_value.get_id()
+            
+            if old_value != new_value:
                 return True
         return False
 

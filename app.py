@@ -1,7 +1,13 @@
 from flask import Flask, request, jsonify, Response
-from database import Location, Machine
+from database import Location, Machine, db
 
 app = Flask(__name__)
+
+
+@app.before_request
+def before_request():
+    """Connect to database before each request"""
+    db.connect(reuse_if_open=True) if db else None
 
 
 @app.route("/", methods=["GET"])

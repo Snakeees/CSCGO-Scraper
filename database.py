@@ -50,10 +50,10 @@ class BaseModel(Model):
 
     @classmethod
     def _check_updates_needed(
-            cls,
-            existing: Any,
-            data: Dict[str, Any],
-            exclude_fields: tuple = ("lastUpdated",),
+        cls,
+        existing: Any,
+        data: Dict[str, Any],
+        exclude_fields: tuple = ("lastUpdated",),
     ) -> bool:
         for key, new_value in data.items():
             if key in exclude_fields:
@@ -176,7 +176,7 @@ class Machine(BaseModel):
             data["lastUser"] = "Unknown"
             cls.create(**data)
         elif cls._check_updates_needed(
-                existing, data, exclude_fields=("lastUpdated", "lastUser")
+            existing, data, exclude_fields=("lastUpdated", "lastUser")
         ):
             data["lastUpdated"] = datetime.datetime.now()
             if data["timeRemaining"] - existing.timeRemaining > 5:

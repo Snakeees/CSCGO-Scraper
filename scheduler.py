@@ -54,10 +54,13 @@ def scheduled_scrape(interval: int) -> None:
             f"Machines: {len(machines)}"
         )
 
-        # Update database
-        Location.upsert(location_data)
+        # Track updates
+        location_updates = 1 if Location.upsert(location_data) else 0
+
+        room_updates = 0
         for room in rooms:
-            Room.upsert(room)
+            if Room.upsert(room):
+                room_updates += 1
 
         # Log machine status summary
         available_machines = sum(1 for m in machines if m.get("timeRemaining", 0) == 0)
@@ -68,9 +71,11 @@ def scheduled_scrape(interval: int) -> None:
             f"In Use: {len(machines) - available_machines}"
         )
 
+        machine_updates = 0
         for machine in machines:
             try:
-                Machine.upsert(machine)
+                if Machine.upsert(machine):
+                    machine_updates += 1
             except Exception as e:
                 success = False
                 logging.error(
@@ -81,6 +86,14 @@ def scheduled_scrape(interval: int) -> None:
             logging.info("Database update completed successfully")
         else:
             logging.warning("Database update completed with some errors")
+
+        # Log update summary
+        logging.info(
+            f"Update summary: "
+            f"Locations: {location_updates}, "
+            f"Rooms: {room_updates}, "
+            f"Machines: {machine_updates}"
+        )
 
     except Exception as e:
         logging.error(f"Scraping error: {str(e)}", exc_info=True)

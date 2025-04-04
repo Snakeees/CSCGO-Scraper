@@ -18,10 +18,10 @@ load_dotenv()
 
 
 class AutoConnectingMySQLDatabase(MySQLDatabase):
-    def execute_sql(self, sql, params=None):
+    def execute_sql(self, sql, params=None, commit=True):
         # Always ensure connection is active before executing SQL
         self.connect(reuse_if_open=True)
-        return super().execute_sql(sql, params)  # Remove commit argument
+        return super().execute_sql(sql, params, commit)
 
 
 # Initialize db as None - will be set based on environment
@@ -76,16 +76,19 @@ class Location(BaseModel):
     )  # Timestamp of last update
 
     @classmethod
-    def upsert(cls, data: Dict[str, Any]) -> None:
+    def upsert(cls, data: Dict[str, Any]) -> bool:
         loc_id = data.get("locationId")
         existing = cls.get_or_none(cls.locationId == loc_id)
 
         if existing is None:
             data["lastUpdated"] = datetime.datetime.now()
             cls.create(**data)
+            return True
         elif cls._check_updates_needed(existing, data):
             data["lastUpdated"] = datetime.datetime.now()
             cls.update(**data).where(cls.locationId == loc_id).execute()
+            return True
+        return False
 
 
 # Room table definition
@@ -106,16 +109,19 @@ class Room(BaseModel):
     )  # Timestamp of last update
 
     @classmethod
-    def upsert(cls, data: Dict[str, Any]) -> None:
+    def upsert(cls, data: Dict[str, Any]) -> bool:
         room_id = data.get("roomId")
         existing = cls.get_or_none(cls.roomId == room_id)
 
         if existing is None:
             data["lastUpdated"] = datetime.datetime.now()
             cls.create(**data)
+            return True
         elif cls._check_updates_needed(existing, data):
             data["lastUpdated"] = datetime.datetime.now()
             cls.update(**data).where(cls.roomId == room_id).execute()
+            return True
+        return False
 
 
 # Machine table definition
@@ -167,7 +173,7 @@ class Machine(BaseModel):
         return super().create(**query)
 
     @classmethod
-    def upsert(cls, data: Dict[str, Any]) -> None:
+    def upsert(cls, data: Dict[str, Any]) -> bool:
         opaque_id = data.get("opaqueId")
         existing = cls.get_or_none(cls.opaqueId == opaque_id)
 
@@ -175,6 +181,7 @@ class Machine(BaseModel):
             data["lastUpdated"] = datetime.datetime.now()
             data["lastUser"] = "Unknown"
             cls.create(**data)
+            return True
         elif cls._check_updates_needed(
             existing, data, exclude_fields=("lastUpdated", "lastUser")
         ):
@@ -182,6 +189,8 @@ class Machine(BaseModel):
             if data["timeRemaining"] - existing.timeRemaining > 5:
                 data["lastUser"] = "Unknown"
             cls.update(**data).where(cls.opaqueId == opaque_id).execute()
+            return True
+        return False
 
 
 # Connect to the database and create tables if they don't exist

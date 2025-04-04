@@ -38,6 +38,7 @@ def get_data():
                 "dryerCount": location.dryerCount,
                 "washerCount": location.washerCount,
                 "machineCount": location.machineCount,
+                "lastUpdated": location.lastUpdated,
                 "rooms": {},
             }
 
@@ -55,6 +56,7 @@ def get_data():
                     "washerCount": room.washerCount,
                     "machineCount": room.machineCount,
                     "freePlay": room.freePlay,
+                    "lastUpdated": room.lastUpdated,
                     "machines": [],
                 }
 
@@ -75,6 +77,7 @@ def get_data():
                         "type": machine.type,
                         "timeRemaining": machine.timeRemaining,
                         "mode": machine.mode,
+                        "lastUpdated": machine.lastUpdated,
                     }
                     room_data["machines"].append(machine_data)
 

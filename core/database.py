@@ -38,6 +38,11 @@ else:
         password=os.getenv("MYSQL_PASSWORD"),
         host=os.getenv("MYSQL_HOST"),
         port=int(os.getenv("MYSQL_PORT")),
+        connect_timeout=28800,
+        read_timeout=28800,
+        write_timeout=28800,
+        ping=1,
+        reconnect=True
     )
     # Connect only if not in testing mode
     db.connect()
@@ -188,9 +193,7 @@ class Machine(BaseModel):
             data["lastUser"] = "Unknown"
             cls.create(**data)
             return True
-        elif cls._check_updates_needed(
-            existing, data, exclude_fields=("lastUpdated", "lastUser")
-        ):
+        elif data["timeRemaining"] != existing.timeRemaining:
             data["lastUpdated"] = datetime.datetime.now()
             if data["timeRemaining"] - existing.timeRemaining > 5:
                 data["lastUser"] = "Unknown"

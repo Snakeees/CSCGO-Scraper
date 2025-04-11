@@ -6,8 +6,18 @@ app = Flask(__name__)
 
 @app.before_request
 def before_request():
-    """Connect to database before each request"""
-    db.connect(reuse_if_open=True) if db else None
+    """Ensure fresh database connection before each request"""
+    if db:
+        if not db.is_closed():
+            db.close()
+        db.connect()
+
+
+@app.teardown_request
+def teardown_request(exception=None):
+    """Close database connection after each request"""
+    if db and not db.is_closed():
+        db.close()
 
 
 @app.route("/", methods=["GET"])

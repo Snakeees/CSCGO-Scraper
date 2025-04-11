@@ -41,8 +41,6 @@ else:
         connect_timeout=28800,
         read_timeout=28800,
         write_timeout=28800,
-        ping=1,
-        reconnect=True
     )
     # Connect only if not in testing mode
     db.connect()

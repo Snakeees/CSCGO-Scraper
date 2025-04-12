@@ -90,11 +90,11 @@ class Location(BaseModel):
         existing = cls.get_or_none(cls.locationId == loc_id)
 
         if existing is None:
-            data["lastUpdated"] = datetime.datetime.now()
+            data["lastUpdated"] = datetime.datetime.now(datetime.timezone.utc)
             cls.create(**data)
             return True
         elif cls._check_updates_needed(existing, data):
-            data["lastUpdated"] = datetime.datetime.now()
+            data["lastUpdated"] = datetime.datetime.now(datetime.timezone.utc)
             cls.update(**data).where(cls.locationId == loc_id).execute()
             return True
         return False
@@ -123,11 +123,11 @@ class Room(BaseModel):
         existing = cls.get_or_none(cls.roomId == room_id)
 
         if existing is None:
-            data["lastUpdated"] = datetime.datetime.now()
+            data["lastUpdated"] = datetime.datetime.now(datetime.timezone.utc)
             cls.create(**data)
             return True
         elif cls._check_updates_needed(existing, data):
-            data["lastUpdated"] = datetime.datetime.now()
+            data["lastUpdated"] = datetime.datetime.now(datetime.timezone.utc)
             cls.update(**data).where(cls.roomId == room_id).execute()
             return True
         return False
@@ -187,12 +187,12 @@ class Machine(BaseModel):
         existing = cls.get_or_none(cls.opaqueId == opaque_id)
 
         if existing is None:
-            data["lastUpdated"] = datetime.datetime.now()
+            data["lastUpdated"] = datetime.datetime.now(datetime.timezone.utc)
             data["lastUser"] = "Unknown"
             cls.create(**data)
             return True
         elif data["timeRemaining"] != existing.timeRemaining:
-            data["lastUpdated"] = datetime.datetime.now()
+            data["lastUpdated"] = datetime.datetime.now(datetime.timezone.utc)
             if data["timeRemaining"] - existing.timeRemaining > 5:
                 data["lastUser"] = "Unknown"
             cls.update(**data).where(cls.opaqueId == opaque_id).execute()

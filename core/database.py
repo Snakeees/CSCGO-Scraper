@@ -20,7 +20,7 @@ load_dotenv()
 class AutoConnectingMySQLDatabase(MySQLDatabase):
     def execute_sql(self, sql, params=None, commit=True):
         # Always ensure connection is active before executing SQL
-        self.connect(reuse_if_open=True)
+        self.connect()
         return super().execute_sql(sql, params, commit)
 
 
@@ -62,11 +62,11 @@ class BaseModel(Model):
             if key in exclude_fields:
                 continue
             old_value = getattr(existing, key)
-            
+
             # Handle foreign keys by comparing IDs
             if isinstance(old_value, Model):
                 old_value = old_value.get_id()
-            
+
             if old_value != new_value:
                 return True
         return False
@@ -200,6 +200,12 @@ class Machine(BaseModel):
         return False
 
 
+# Discord table definition
+class Discord(BaseModel):
+    discordId = CharField(primary_key=True)  # Discord user/guild ID
+    roomId = CharField()  # Room identifier
+
+
 # Connect to the database and create tables if they don't exist
 if not os.getenv("TESTING"):
-    db.create_tables([Location, Room, Machine], safe=True)
+    db.create_tables([Location, Room, Machine, Discord], safe=True)

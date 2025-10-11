@@ -163,6 +163,152 @@ def get_claim():
         return jsonify({"error": str(e)}), 500
 
 
+def _serialize_machine(machine, *, room=None, location=None):
+    """Return a machine dict including room/location context."""
+    return {
+        "licensePlate": machine.licensePlate,
+        "qrCodeId": machine.qrCodeId,
+        "lastUser": machine.lastUser,
+        "available": machine.available,
+        "type": machine.type,
+        "timeRemaining": machine.timeRemaining,
+        "mode": machine.mode,
+        "lastUpdated": machine.lastUpdated,
+        # context for the PWA
+        "roomId": getattr(room, "roomId", None) if room else None,
+        "roomLabel": getattr(room, "label", None) if room else None,
+        "locationId": getattr(location, "locationId", None) if location else None,
+        "locationLabel": getattr(location, "label", None) if location else None,
+    }
+
+
+@app.route("/machines", methods=["GET"])
+def list_machines():
+    """
+    Fetch a flat list of machines with optional filters.
+
+    Query Parameters (all optional):
+        room: Filter by roomId (string)
+        location: Filter by locationId (string)
+        machine: Filter by licensePlate or qrCodeId
+        type: Filter by machine type ("washer" or "dryer")
+        available: Filter by availability ("true"/"false"/"1"/"0")
+        limit: Max number of results to return (default 100)
+        offset: Number of results to skip (default 0)
+
+    Returns:
+        tuple: (JSON array of machines, 200) or error JSON with status code.
+    """
+    try:
+        room_q = request.args.get("room")
+        location_q = request.args.get("location")
+        machine_q = request.args.get("machine")
+        type_q = request.args.get("type")
+        available_q = request.args.get("available")
+
+        try:
+            limit = int(request.args.get("limit", "100"))
+            offset = int(request.args.get("offset", "0"))
+        except ValueError:
+            return jsonify({"error": "limit/offset must be integers"}), 400
+
+        out = []
+        for location in Location.select():
+            if location_q and str(location.locationId) != str(location_q):
+                continue
+
+            for room in location.rooms:
+                if room_q and str(room.roomId) != str(room_q):
+                    continue
+
+                for machine in room.machines:
+                    if machine_q and (
+                        str(machine.licensePlate) != str(machine_q)
+                        and str(machine.qrCodeId) != str(machine_q)
+                    ):
+                        continue
+
+                    if type_q and str(machine.type).lower() != str(type_q).lower():
+                        continue
+
+                    if available_q is not None:
+                        want = available_q.lower() in ("1", "true", "yes")
+                        if bool(machine.available) != want:
+                            continue
+
+                    out.append(
+                        _serialize_machine(machine, room=room, location=location)
+                    )
+
+        # Always return 200 with a list (even if empty), paginated slice
+        return jsonify(out[offset : offset + limit]), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/<room_id>/machines", methods=["GET"])
+def list_room_machines(room_id: str):
+    """
+    Fetch machines within a specific room.
+
+    Path:
+        /<room_id>/machines
+
+    Query Parameters (optional):
+        machine: Filter by licensePlate or qrCodeId
+        type: Filter by machine type ("washer" or "dryer")
+        available: Filter by availability ("true"/"false"/"1"/"0")
+
+    Returns:
+        tuple: (JSON array of machines in the room, 200) or error JSON with status code.
+    """
+    try:
+        type_q = request.args.get("type")
+        available_q = request.args.get("available")
+        machine_q = request.args.get("machine")
+
+        found_room = None
+        found_location = None
+
+        for location in Location.select():
+            for room in location.rooms:
+                if str(room.roomId) == str(room_id):  # roomId is a string
+                    found_room = room
+                    found_location = location
+                    break
+            if found_room:
+                break
+
+        if not found_room:
+            return jsonify({"error": f"room {room_id} not found"}), 404
+
+        machines = []
+        for machine in found_room.machines:
+            if machine_q and (
+                str(machine.licensePlate) != str(machine_q)
+                and str(machine.qrCodeId) != str(machine_q)
+            ):
+                continue
+
+            if type_q and str(machine.type).lower() != str(type_q).lower():
+                continue
+
+            if available_q is not None:
+                want = available_q.lower() in ("1", "true", "yes")
+                if bool(machine.available) != want:
+                    continue
+
+            machines.append(
+                _serialize_machine(machine, room=found_room, location=found_location)
+            )
+
+        return jsonify(machines), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
 @app.route("/logs/access", methods=["GET"])
 def access_logs():
     """

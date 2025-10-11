@@ -207,7 +207,7 @@ def list_machines():
         available_q = request.args.get("available")
 
         try:
-            limit = int(request.args.get("limit", "100"))
+            limit = int(request.args.get("limit", "10000"))
             offset = int(request.args.get("offset", "0"))
         except ValueError:
             return jsonify({"error": "limit/offset must be integers"}), 400

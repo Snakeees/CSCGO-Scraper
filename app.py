@@ -345,5 +345,84 @@ def error_logs():
         return Response("error.log not found", status=404, mimetype="text/plain")
 
 
+@app.route("/discord/<discord_id>/room", methods=["GET"])
+def get_discord_room(discord_id: str):
+    """
+    Get the room ID associated with a Discord ID.
+
+    Path:
+        /discord/<discord_id>/room
+
+    Returns:
+        tuple: JSON response with room ID or error message and status code
+    """
+    try:
+        from core.database import Discord
+
+        discord_entry = Discord.get_or_none(Discord.discordId == discord_id)
+
+        if not discord_entry:
+            return jsonify({"error": f"Discord ID {discord_id} not found"}), 404
+
+        return jsonify({"discordId": discord_id, "roomId": discord_entry.roomId}), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/discord/<discord_id>/room", methods=["POST"])
+def set_discord_room(discord_id: str):
+    """
+    Set or update the room ID for a Discord ID.
+
+    Path:
+        /discord/<discord_id>/room
+
+    Expected JSON payload:
+        {
+            "room_id": "string"  # Room ID to associate with Discord ID
+        }
+
+    Returns:
+        tuple: JSON response with success status or error message and status code
+    """
+    try:
+        from core.database import Discord
+
+        data = request.get_json()
+
+        if not data:
+            return jsonify({"error": "No data provided"}), 400
+
+        room_id = data.get("room_id")
+
+        if not room_id:
+            return jsonify({"error": "Missing room_id field"}), 400
+
+        # Create or update Discord entry
+        discord_entry, created = Discord.get_or_create(
+            discordId=discord_id, defaults={"roomId": room_id}
+        )
+
+        if not created:
+            discord_entry.roomId = room_id
+            discord_entry.save()
+
+        return (
+            jsonify(
+                {
+                    "success": True,
+                    "discordId": discord_id,
+                    "roomId": room_id,
+                    "created": created,
+                }
+            ),
+            200,
+        )
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)

@@ -168,6 +168,7 @@ def _serialize_machine(machine, *, room=None, location=None):
     return {
         "licensePlate": machine.licensePlate,
         "qrCodeId": machine.qrCodeId,
+        "stickerNumber": machine.stickerNumber,
         "lastUser": machine.lastUser,
         "available": machine.available,
         "type": machine.type,

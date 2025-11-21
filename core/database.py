@@ -208,6 +208,9 @@ class Machine(BaseModel):
                 data["lastUser"] = "Unknown"
             cls.update(**data).where(cls.opaqueId == opaque_id).execute()
             return True
+        elif data["mode"] != existing.mode:
+            cls.update(**data).where(cls.opaqueId == opaque_id).execute()
+            return True
         return False
 
 

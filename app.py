@@ -163,6 +163,55 @@ def get_claim():
         return jsonify({"error": str(e)}), 500
 
 
+def _serialize_room(room, *, location=None):
+    """Return a room dict including location context."""
+    return {
+        "roomId": room.roomId,
+        "label": room.label,
+        "locationId": getattr(location, "locationId", None) if location else None,
+        "locationLabel": getattr(location, "label", None) if location else None,
+        "washerCount": room.washerCount,
+        "dryerCount": room.dryerCount,
+    }
+
+
+@app.route("/rooms", methods=["GET"])
+def list_rooms():
+    """
+    Return a flat list of all rooms and their location context.
+
+    Returns:
+        200: JSON array of rooms
+    """
+    try:
+        rooms_out = []
+        for location in Location.select():
+            for room in location.rooms:
+                rooms_out.append(_serialize_room(room, location=location))
+        return jsonify(rooms_out), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/rooms/<room_id>", methods=["GET"])
+def get_room(room_id: str):
+    """
+    Return a single room by roomId with location context.
+
+    Path:
+        /rooms/<room_id>
+    """
+    try:
+        for location in Location.select():
+            for room in location.rooms:
+                if str(room.roomId) == str(room_id):
+                    return jsonify(_serialize_room(room, location=location)), 200
+
+        return jsonify({"error": f"room {room_id} not found"}), 404
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
 def _serialize_machine(machine, *, room=None, location=None):
     """Return a machine dict including room/location context."""
     return {
